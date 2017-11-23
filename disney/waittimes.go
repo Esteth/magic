@@ -15,9 +15,10 @@ type Park struct {
 }
 
 type WaitTime struct {
-	AttractionID string
-	PostedWait   int
-	Operating    bool
+	AttractionID string `datastore:",noindex" json:"-"`
+	PostedWait   int    `datastore:",noindex" json:"postedWait"`
+	Operating    bool   `datastore:",noindex" json:"operating"`
+	Timestamp    int64  `json:"timestamp`
 }
 
 type waitTimesResponse struct {
@@ -37,7 +38,7 @@ type waitTime struct {
 }
 
 // FetchWaitTimes returns the current wait times for each attraction in the park.
-func (park Park) FetchWaitTimes(ctx context.Context) ([]WaitTime, error) {
+func (park Park) FetchWaitTimes(ctx context.Context, timestamp int64) ([]WaitTime, error) {
 	var resp waitTimesResponse
 	err := fetchDisneyURL(ctx, park.waitTimeURL(), &resp)
 	if err != nil {
@@ -53,6 +54,7 @@ func (park Park) FetchWaitTimes(ctx context.Context) ([]WaitTime, error) {
 			AttractionID: attraction.Name,
 			PostedWait:   attraction.WaitTime.PostedWaitMinutes,
 			Operating:    attraction.WaitTime.Status == "Operating",
+			Timestamp:    timestamp,
 		}
 		results = append(results, waitTime)
 	}
