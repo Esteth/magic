@@ -18,7 +18,7 @@ type WaitTime struct {
 	AttractionID string `datastore:",noindex" json:"-"`
 	PostedWait   int    `datastore:",noindex" json:"postedWait"`
 	Operating    bool   `datastore:",noindex" json:"operating"`
-	Timestamp    int64  `json:"timestamp`
+	Timestamp    int64  `json:"timestamp"`
 }
 
 type waitTimesResponse struct {
