@@ -26,38 +26,47 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	currentTimeStamp := int64(time.Now().Unix())
 
-	waitTimes, err := disney.NewMagicKingdom().FetchWaitTimes(c, currentTimeStamp)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	parks := []disney.Park{
+		disney.NewMagicKingdom(),
+		disney.NewEpcot(),
+		disney.NewHollywoodStudios(),
+		disney.NewAnimalKingdom(),
 	}
 
-	for _, waitTime := range waitTimes {
-		err = datastore.RunInTransaction(c, func(c context.Context) error {
-			var attraction attraction
-			attractionKey := datastore.NewKey(c, "Attraction", waitTime.AttractionID, 0, nil)
-			err := datastore.Get(c, attractionKey, &attraction)
-			if err == datastore.ErrNoSuchEntity {
-				datastore.Put(c, attractionKey, &attraction)
-			} else if err != nil {
-				return err
-			}
+	for _, park := range parks {
+		waitTimes, err := park.FetchWaitTimes(c, currentTimeStamp)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-			newKey := datastore.NewKey(c, "WaitTime", "", currentTimeStamp, attractionKey)
-			_, err = datastore.Put(c, newKey, &waitTime)
-			if err != nil {
-				return err
-			}
-			return nil
-		}, nil)
-	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+		for _, waitTime := range waitTimes {
+			err = datastore.RunInTransaction(c, func(c context.Context) error {
+				var attraction attraction
+				attractionKey := datastore.NewKey(c, "Attraction", waitTime.AttractionID, 0, nil)
+				err := datastore.Get(c, attractionKey, &attraction)
+				if err == datastore.ErrNoSuchEntity {
+					datastore.Put(c, attractionKey, &attraction)
+				} else if err != nil {
+					return err
+				}
 
-	for _, waitTime := range waitTimes {
-		fmt.Fprintf(w, "%d - %d minutes\n", waitTime.AttractionID, waitTime.PostedWait)
+				newKey := datastore.NewKey(c, "WaitTime", "", currentTimeStamp, attractionKey)
+				_, err = datastore.Put(c, newKey, &waitTime)
+				if err != nil {
+					return err
+				}
+				return nil
+			}, nil)
+		}
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		for _, waitTime := range waitTimes {
+			fmt.Fprintf(w, "%d - %d minutes\n", waitTime.AttractionID, waitTime.PostedWait)
+		}
 	}
 }
 
