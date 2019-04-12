@@ -1,4 +1,4 @@
-package magic
+package main
 
 import (
 	"encoding/json"
@@ -17,9 +17,10 @@ type attraction struct {
 }
 
 // Run sets up HTTP hhndlers.
-func Run() {
+func main() {
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/data", handleData)
+	appengine.Main()
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
