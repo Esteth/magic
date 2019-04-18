@@ -1,6 +1,9 @@
 runtime: go111
 
 handlers:
+- url: /(.*\.(gif|png|jpg|js|html|csv|json))$
+  static_files: static/\1
+  upload: static/.*\.(gif|png|jpg|js|html|csv|json)$
 - url: /
   script: auto
   login: admin
