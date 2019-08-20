@@ -70,7 +70,7 @@ func fetchDisneyURL(ctx context.Context, url string, out interface{}) error {
 	defer resp.Body.Close()
 
 	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
-		return errors.Wrap(err, "Error decoding API response")
+		return errors.Wrapf(err, "Error decoding API response from %s", url)
 	}
 
 	return nil
